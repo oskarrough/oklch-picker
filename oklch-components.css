@@ -1,0 +1,60 @@
+numeric-input {
+  display: flex;
+  place-items: center;
+
+  button {
+    min-width: 1.5em;
+  }
+
+  input[type="text"] {
+    max-width: 3em;
+    text-align: right;
+  }
+}
+
+oklch-lightness,
+oklch-chroma,
+oklch-hue,
+oklch-alpha,
+oklch-color-picker {
+  --height: 1.5rem;
+
+  position: relative;
+  display: flex;
+  flex-flow: column;
+  margin: 1em 0;
+  border: 1px solid;
+
+  numeric-input {
+    top: 0;
+
+    /* position: absolute; */
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+  }
+}
+
+oklch-lightness,
+oklch-chroma,
+oklch-hue,
+oklch-color-picker {
+  canvas {
+    width: 100%;
+    height: var(--height);
+  }
+
+  input[type="range"] {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: var(--height);
+    appearance: none;
+    background: none;
+
+    /* accent-color: oklch(0.0 0 0 / 1); */
+  }
+}
+
+
