@@ -5,126 +5,14 @@ import { getCleanCtx, initCanvasSize } from './lib/canvas.ts'
 console.log('Test elements loading...')
 
 /**
- * Reusable numeric input with increment/decrement buttons
- */
-class NumericInput extends HTMLElement {
-  private input!: HTMLInputElement
-  private _value: number = 0
-  private _min: number = 0
-  private _max: number = 1
-  private _step: number = 0.01
-
-  constructor() {
-    super()
-    this.render()
-    this.setupInput()
-  }
-
-  static get observedAttributes() {
-    return ['value', 'min', 'max', 'step', 'label', 'id']
-  }
-
-  attributeChangedCallback(name: string, oldValue: string, newValue: string) {
-    if (oldValue === newValue) return
-
-    switch (name) {
-      case 'value':
-        this._value = parseFloat(newValue) || 0
-        this.updateInput()
-        break
-      case 'min':
-        this._min = parseFloat(newValue) || 0
-        break
-      case 'max':
-        this._max = parseFloat(newValue) || 1
-        break
-      case 'step':
-        this._step = parseFloat(newValue) || 0.01
-        break
-      case 'label':
-      case 'id':
-        this.render()
-        break
-    }
-  }
-
-  get value() {
-    return this._value
-  }
-
-  set value(val: number) {
-    this._value = Math.max(this._min, Math.min(this._max, val))
-    this.setAttribute('value', String(this._value))
-    this.updateInput()
-    this.dispatchEvent(new CustomEvent('input', {
-      detail: { value: this._value },
-      bubbles: true
-    }))
-  }
-
-  private render() {
-    const label = this.getAttribute('label') || 'Value'
-    const id = this.getAttribute('id') || 'numeric-input'
-    const value = this.getAttribute('value') || '0'
-    const min = this.getAttribute('min') || '0'
-    const max = this.getAttribute('max') || '1'
-    const step = this.getAttribute('step') || '0.01'
-
-    this.innerHTML = `
-      <label for="${id}">
-        ${label}
-        <input id="${id}"
-          type="text"
-          role="spinbutton"
-          aria-valuemin="${min}"
-          aria-valuemax="${max}"
-          pattern="^[0-9+\\/*.\\-]+$"
-          inputmode="decimal"
-          step="${step}"
-          value="${value}">
-        <button type="button" data-action="increase" tabindex="-1" aria-hidden="true">+</button>
-        <button type="button" data-action="decrease" tabindex="-1" aria-hidden="true">-</button>
-      </label>
-    `
-  }
-
-  private setupInput() {
-    this.input = this.querySelector('input[type="text"]')!
-
-    // Text input
-    this.input.addEventListener('input', () => {
-      const val = parseFloat(this.input.value)
-      if (!isNaN(val) && val >= this._min && val <= this._max) {
-        this.value = val
-      }
-    })
-
-    // Increase/decrease buttons
-    this.querySelector('button[data-action="increase"]')?.addEventListener('click', () => {
-      this.value = Math.min(this._max, this.value + this._step)
-    })
-
-    this.querySelector('button[data-action="decrease"]')?.addEventListener('click', () => {
-      this.value = Math.max(this._min, this.value - this._step)
-    })
-  }
-
-  private updateInput() {
-    if (this.input) {
-      this.input.value = String(this._value)
-    }
-  }
-}
-
-/**
- * We have five components:
- * each channel: OklchLightness, OklchChrome, Oklchhue OklchAlpha
+ * We have four components:
+ * each channel: OklchLightness, OklchChrome, OklchHue, OklchAlpha
  * and the composing element: OklchPicker
  */
 
 class OklchLightness extends HTMLElement {
   private rangeInput!: HTMLInputElement
-  private numericInput!: NumericInput
+  private numericInput!: HTMLInputElement
   private canvas!: HTMLCanvasElement
   private _value: number = 0.7
   private _chroma: number = 0.1  // For gradient painting
@@ -166,14 +54,13 @@ class OklchLightness extends HTMLElement {
     this._value = parseFloat(value)
 
     this.innerHTML = `
-      <numeric-input
+      <label for="lightness-input">Lightness</label>
+      <input type="number"
         id="lightness-input"
-        label="Lightness"
-        value="${value}"
         min="0"
         max="1"
-        step="0.01">
-      </numeric-input>
+        step="0.01"
+        value="${value}">
       <canvas></canvas>
       <input type="range"
         min="0"
@@ -187,7 +74,7 @@ class OklchLightness extends HTMLElement {
 
   private setupInputs() {
     this.rangeInput = this.querySelector('input[type="range"]')!
-    this.numericInput = this.querySelector('numeric-input')!
+    this.numericInput = this.querySelector('input[type="number"]')!
     this.canvas = this.querySelector('canvas')!
 
     // Range slider input
@@ -196,9 +83,8 @@ class OklchLightness extends HTMLElement {
     })
 
     // Numeric input
-    this.numericInput.addEventListener('input', (e: Event) => {
-      const customEvent = e as CustomEvent<{value: number}>
-      this.value = customEvent.detail.value
+    this.numericInput.addEventListener('input', () => {
+      this.value = parseFloat(this.numericInput.value)
     })
 
     // Initial gradient paint
@@ -209,8 +95,8 @@ class OklchLightness extends HTMLElement {
     if (this.rangeInput && this.numericInput) {
       this.rangeInput.value = String(this._value)
       // Only update if different to prevent recursion
-      if (this.numericInput.value !== this._value) {
-        this.numericInput.value = this._value
+      if (parseFloat(this.numericInput.value) !== this._value) {
+        this.numericInput.value = String(this._value)
       }
     }
   }
@@ -240,7 +126,7 @@ class OklchLightness extends HTMLElement {
 
 class OklchChroma extends HTMLElement {
   private rangeInput!: HTMLInputElement
-  private numericInput!: NumericInput
+  private numericInput!: HTMLInputElement
   private canvas!: HTMLCanvasElement
   private _value: number = 0.1
   private _lightness: number = 0.7  // For gradient painting
@@ -282,14 +168,13 @@ class OklchChroma extends HTMLElement {
     this._value = parseFloat(value)
 
     this.innerHTML = `
-      <numeric-input
+      <label for="chroma-input">Chroma</label>
+      <input type="number"
         id="chroma-input"
-        label="Chroma"
-        value="${value}"
         min="0"
         max="0.37"
-        step="0.01">
-      </numeric-input>
+        step="0.01"
+        value="${value}">
       <canvas></canvas>
       <input type="range"
         min="0"
@@ -303,7 +188,7 @@ class OklchChroma extends HTMLElement {
 
   private setupInputs() {
     this.rangeInput = this.querySelector('input[type="range"]')!
-    this.numericInput = this.querySelector('numeric-input')!
+    this.numericInput = this.querySelector('input[type="number"]')!
     this.canvas = this.querySelector('canvas')!
 
     // Range slider input
@@ -312,9 +197,8 @@ class OklchChroma extends HTMLElement {
     })
 
     // Numeric input
-    this.numericInput.addEventListener('input', (e: Event) => {
-      const customEvent = e as CustomEvent<{value: number}>
-      this.value = customEvent.detail.value
+    this.numericInput.addEventListener('input', () => {
+      this.value = parseFloat(this.numericInput.value)
     })
 
     // Initial gradient paint
@@ -325,8 +209,8 @@ class OklchChroma extends HTMLElement {
     if (this.rangeInput && this.numericInput) {
       this.rangeInput.value = String(this._value)
       // Only update if different to prevent recursion
-      if (this.numericInput.value !== this._value) {
-        this.numericInput.value = this._value
+      if (parseFloat(this.numericInput.value) !== this._value) {
+        this.numericInput.value = String(this._value)
       }
     }
   }
@@ -356,7 +240,7 @@ class OklchChroma extends HTMLElement {
 
 class OklchHue extends HTMLElement {
   private rangeInput!: HTMLInputElement
-  private numericInput!: NumericInput
+  private numericInput!: HTMLInputElement
   private canvas!: HTMLCanvasElement
   private _value: number = 286
   private _lightness: number = 0.7  // For gradient painting
@@ -399,14 +283,13 @@ class OklchHue extends HTMLElement {
     this._value = parseFloat(value)
 
     this.innerHTML = `
-      <numeric-input
+      <label for="hue-input">Hue</label>
+      <input type="number"
         id="hue-input"
-        label="Hue"
-        value="${value}"
         min="0"
         max="360"
-        step="1">
-      </numeric-input>
+        step="1"
+        value="${value}">
       <canvas></canvas>
       <input type="range"
         min="0"
@@ -420,7 +303,7 @@ class OklchHue extends HTMLElement {
 
   private setupInputs() {
     this.rangeInput = this.querySelector('input[type="range"]')!
-    this.numericInput = this.querySelector('numeric-input')!
+    this.numericInput = this.querySelector('input[type="number"]')!
     this.canvas = this.querySelector('canvas')!
 
     // Range slider input
@@ -429,9 +312,8 @@ class OklchHue extends HTMLElement {
     })
 
     // Numeric input
-    this.numericInput.addEventListener('input', (e: Event) => {
-      const customEvent = e as CustomEvent<{value: number}>
-      this.value = customEvent.detail.value
+    this.numericInput.addEventListener('input', () => {
+      this.value = parseFloat(this.numericInput.value)
     })
 
     // Initial gradient paint
@@ -442,8 +324,8 @@ class OklchHue extends HTMLElement {
     if (this.rangeInput && this.numericInput) {
       this.rangeInput.value = String(this._value)
       // Only update if different to prevent recursion
-      if (this.numericInput.value !== this._value) {
-        this.numericInput.value = this._value
+      if (parseFloat(this.numericInput.value) !== this._value) {
+        this.numericInput.value = String(this._value)
       }
     }
   }
@@ -473,7 +355,7 @@ class OklchHue extends HTMLElement {
 
 class OklchAlpha extends HTMLElement {
   private rangeInput!: HTMLInputElement
-  private numericInput!: NumericInput
+  private numericInput!: HTMLInputElement
   private rangeInputElement!: HTMLInputElement
   private _value: number = 1
   private _lightness: number = 0.7  // For gradient painting
@@ -516,14 +398,13 @@ class OklchAlpha extends HTMLElement {
     this._value = parseFloat(value)
 
     this.innerHTML = `
-      <numeric-input
+      <label for="alpha-input">Alpha</label>
+      <input type="number"
         id="alpha-input"
-        label="Alpha"
-        value="${value}"
         min="0"
         max="1"
-        step="0.01">
-      </numeric-input>
+        step="0.01"
+        value="${value}">
       <input type="range"
         min="0"
         max="1"
@@ -536,7 +417,7 @@ class OklchAlpha extends HTMLElement {
 
   private setupInputs() {
     this.rangeInput = this.querySelector('input[type="range"]')!
-    this.numericInput = this.querySelector('numeric-input')!
+    this.numericInput = this.querySelector('input[type="number"]')!
     this.rangeInputElement = this.rangeInput
 
     // Range slider input
@@ -545,9 +426,8 @@ class OklchAlpha extends HTMLElement {
     })
 
     // Numeric input
-    this.numericInput.addEventListener('input', (e: Event) => {
-      const customEvent = e as CustomEvent<{value: number}>
-      this.value = customEvent.detail.value
+    this.numericInput.addEventListener('input', () => {
+      this.value = parseFloat(this.numericInput.value)
     })
 
     // Initial gradient paint
@@ -558,21 +438,13 @@ class OklchAlpha extends HTMLElement {
     if (this.rangeInput && this.numericInput) {
       this.rangeInput.value = String(this._value)
       // Only update if different to prevent recursion
-      if (this.numericInput.value !== this._value) {
-        this.numericInput.value = this._value
+      if (parseFloat(this.numericInput.value) !== this._value) {
+        this.numericInput.value = String(this._value)
       }
     }
   }
 
   private paintGradient() {
-    if (!this.rangeInputElement) return
-
-    // Build the current color without alpha
-    const color = build(this._lightness, this._chroma, this._hue)
-
-    // Set CSS custom properties for alpha gradient
-    this.rangeInputElement.style.setProperty('--range-a-from', fastFormat({ ...color, alpha: 0 }))
-    this.rangeInputElement.style.setProperty('--range-a-to', fastFormat({ ...color, alpha: 1 }))
   }
 
   // Method to update L/C/H for gradient repainting
@@ -666,6 +538,8 @@ class OklchPicker extends HTMLElement {
     this.hueControl = this.querySelector('oklch-hue')!
     this.alphaControl = this.querySelector('oklch-alpha')!
 
+    this.updateAlphaGradient()
+
     // Listen for changes from child controls
     this.addEventListener('lightness-change', (e: Event) => {
       const customEvent = e as CustomEvent<{value: number}>
@@ -719,6 +593,7 @@ class OklchPicker extends HTMLElement {
   }
 
   private emitChange() {
+    this.updateAlphaGradient()
     this.dispatchEvent(new CustomEvent('change', {
       detail: {
         l: this.l,
@@ -730,10 +605,15 @@ class OklchPicker extends HTMLElement {
       bubbles: true
     }))
   }
+
+  private updateAlphaGradient() {
+    const color = build(this.l, this.c, this.h)
+    this.style.setProperty('--range-a-from', fastFormat({ ...color, alpha: 0 }))
+    this.style.setProperty('--range-a-to', fastFormat({ ...color, alpha: 1 }))
+  }
 }
 
 // Register all custom elements
-customElements.define('numeric-input', NumericInput)
 customElements.define('oklch-lightness', OklchLightness)
 customElements.define('oklch-chroma', OklchChroma)
 customElements.define('oklch-hue', OklchHue)
