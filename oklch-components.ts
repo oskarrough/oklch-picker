@@ -99,6 +99,7 @@ class OklchLightness extends HTMLElement {
         this.numericInput.value = String(this._value)
       }
     }
+    this.paintGradient()
   }
 
   private paintGradient() {
@@ -213,6 +214,7 @@ class OklchChroma extends HTMLElement {
         this.numericInput.value = String(this._value)
       }
     }
+    this.paintGradient()
   }
 
   private paintGradient() {
@@ -328,6 +330,7 @@ class OklchHue extends HTMLElement {
         this.numericInput.value = String(this._value)
       }
     }
+    this.paintGradient()
   }
 
   private paintGradient() {
