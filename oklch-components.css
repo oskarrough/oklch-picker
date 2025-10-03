@@ -2,7 +2,7 @@ oklch-lightness,
 oklch-chroma,
 oklch-hue,
 oklch-alpha,
-oklch-color-picker {
+oklch-picker {
   --height: 2.5rem;
 
   position: relative;
