@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OKLCH Components</title>
+    <link rel="stylesheet" href="./oklch-components.css" />
+    <style>
+      body {
+        margin: 1rem;
+        font-family: system-ui, sans-serif;
+      }
+      section {
+        margin: 0 0 2rem;
+        max-width: 500px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>OKLCH Components</h1>
+
+    <section>
+      <h2>&lt;oklch-picker&gt;</h2>
+      <oklch-picker l="0.7" c="0.1" h="286" a="1"></oklch-picker>
+    </section>
+
+    <section>
+      <div id="color-preview" style="width: 300px; height: 120px; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 1rem;"></div>
+      <div>
+        <code id="oklch-output">oklch(0.7 0.1 286 / 1)</code>
+      </div>
+    </section>
+
+    <section>
+      <h2>Individual controls</h2>
+      <oklch-lightness value="0.7"></oklch-lightness>
+      <oklch-chroma value="0.1"></oklch-chroma>
+      <oklch-hue value="286"></oklch-hue>
+      <oklch-alpha value="1"></oklch-alpha>
+    </section>
+
+    <script type="module" src="./oklch-components.ts"></script>
+    <script>
+      // Update preview when picker changes
+      document.addEventListener('change', (e) => {
+        if (e.target.tagName === 'OKLCH-PICKER') {
+          const preview = document.getElementById('color-preview')
+          const output = document.getElementById('oklch-output')
+
+          preview.style.backgroundColor = e.detail.value
+          output.textContent = e.detail.value
+        }
+      })
+
+      // Set initial color
+      window.addEventListener('load', () => {
+        const picker = document.querySelector('oklch-picker')
+        const preview = document.getElementById('color-preview')
+        const output = document.getElementById('oklch-output')
+
+        if (picker) {
+          preview.style.backgroundColor = picker.value
+          output.textContent = picker.value
+        }
+      })
+    </script>
+  </body>
+</html>
+

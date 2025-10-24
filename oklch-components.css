@@ -1,0 +1,67 @@
+oklch-lightness,
+oklch-chroma,
+oklch-hue,
+oklch-alpha,
+oklch-picker {
+  --height: 2.5rem;
+
+  position: relative;
+  display: flex;
+  flex-flow: column;
+  height: var(--height);
+  margin: 1em 0;
+  border: 1px solid;
+  border-radius: 3px;
+
+  input[type="number"] {
+    width: 5em;
+    padding: 0.25rem;
+    background: transparent;
+    border: 0;
+  }
+
+  label {
+    position: absolute;
+    top: 0;
+    right: 0.4em;
+    bottom: 0;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-end;
+    justify-content: center;
+    font-size: 0.875rem;
+    pointer-events: none;
+  }
+
+  input[type="range"] {
+    position: absolute;
+    inset: 0;
+    appearance: none;
+    background: none;
+  }
+}
+
+oklch-lightness,
+oklch-chroma,
+oklch-hue {
+  canvas {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: var(--height);
+  }
+}
+
+/* When alpha is used inside oklch-picker, show the final color */
+oklch-picker oklch-alpha::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  background: linear-gradient(to right, var(--range-a-from), var(--range-a-to));
+  border-radius: 4px;
+}
+
